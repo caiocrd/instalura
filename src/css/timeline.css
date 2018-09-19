@@ -227,7 +227,7 @@ html,body {
   
   .timeline-enter.timeline-enter-active {
     opacity: 1;
-    transition: opacity 500ms ease-in;
+    transition: opacity 1000ms ease-in;
   }
   
   .timeline-leave {
@@ -236,5 +236,5 @@ html,body {
   
   .timeline-leave.timeline-leave-active {
     opacity: 0.01;
-    transition: opacity 300ms ease-in;
+    transition: opacity 1000ms ease-in;
   }      
