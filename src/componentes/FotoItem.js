@@ -1,52 +1,126 @@
 import React, { Component } from 'react';
 import {Link} from 'react-router';
+import PubSub from 'pubsub-js'
 
 class FotoAtualizacoes extends Component {
-    render(){
-        return (
-            <section className="fotoAtualizacoes">
-              <a href="#" className="fotoAtualizacoes-like">Likar</a>
-              <form className="fotoAtualizacoes-form">
-                <input type="text" placeholder="Adicione um comentário..." className="fotoAtualizacoes-form-campo"/>
-                <input type="submit" value="Comentar!" className="fotoAtualizacoes-form-submit"/>
-              </form>
 
-            </section>            
-        );
-    }
+  constructor(props){
+    super(props);
+    this.state = {fotoLikeada: this.props.foto.likeada};
+  }
+
+  like(event){
+    event.preventDefault();
+    fetch(`https://instalura-api.herokuapp.com/api/fotos/${this.props.foto.id}/like?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`,{method:'POST'})
+    .then(response => {
+      if(response.ok){
+        return response.json();
+      }
+    })
+    .then(liker => {
+      
+      this.setState({fotoLikeada:!this.state.fotoLikeada});
+      PubSub.publish('atualiza-liker', {fotoId:this.props.foto.id, liker});
+    });
+  }
+
+  comentar(event){
+    event.preventDefault();
+    console.log(this.comentario.value);
+    const requestInfo = {
+      method:'POST',
+      body:JSON.stringify({texto:this.comentario.value}),
+      headers:new Headers({
+          'Content-type' : 'application/json' 
+      })
+    };
+    fetch(`https://instalura-api.herokuapp.com/api/fotos/${this.props.foto.id}/comment?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`,requestInfo)
+    .then(response => {
+      if(response.ok){
+        return response.json();
+      }
+    })
+    .then(comentario => {
+      PubSub.publish('atualiza-comentario', {fotoId:this.props.foto.id, comentario});
+    });
+  }
+
+  render(){
+
+      return (
+          <section className="fotoAtualizacoes">
+            <a onClick={this.like.bind(this)} className={this.state.fotoLikeada ? 'fotoAtualizacoes-like-ativo': 'fotoAtualizacoes-like'}>Likar</a>
+            <form className="fotoAtualizacoes-form" onSubmit={this.comentar.bind(this)}>
+              <input type="text" placeholder="Adicione um comentário..." className="fotoAtualizacoes-form-campo" ref={(input) => this.comentario = input}/>
+              <input type="submit" value="Comentar!" className="fotoAtualizacoes-form-submit"/>
+            </form>
+
+          </section>            
+      );
+  }
 }
 
 class FotoInfo extends Component {
-    render(){
-        return (
-            <div className="foto-info">
-              <div className="foto-info-likes">
-                {this.props.foto.likers.map(liker => <Link to={`/timeline/${liker.login}`}>
-                  {liker.login}
-                </Link>
+  constructor(props){
+    super(props);
+    this.state = {likers: this.props.foto.likers, comentarios: this.props.foto.comentarios};
+  }
 
-                , )}
-                
-                 curtiram
+  componentWillMount(){
+    PubSub.subscribe('atualiza-liker', (topico, infoLiker) => {
+      if(infoLiker.fotoId === this.props.foto.id){
+        const possivelLiker = this.state.likers.find(liker => liker.login === infoLiker.liker.login);
+        if(possivelLiker === undefined){
+          let novosLikers = this.state.likers.concat(infoLiker.liker);
+          this.setState({likers: novosLikers});
+        }else{
+          let novosLikers = this.state.likers.filter(liker => liker.login !== infoLiker.liker.login);
+          this.setState({likers: novosLikers});
+        }
+      }
+      
+    });
 
-              </div>
+    PubSub.subscribe('atualiza-comentario', (topico, infoComentario) => {
+      if(infoComentario.fotoId === this.props.foto.id){
+          //console.log(infoComentario);
+         let novosComentarios = this.state.comentarios.concat(infoComentario.comentario);
+         this.setState({comentarios: novosComentarios});
+      }
+      
+    });
+  }
 
-              <p className="foto-info-legenda">
-                <Link to={`/timeline/${this.props.foto.loginUsuario}`} className="foto-info-autor">{this.props.foto.loginUsuario} </Link>
-                {this.props.foto.comentario}
-              </p>
+  render(){
+      return (
+          <div className="foto-info">
+            <div className="foto-info-likes">
+              {this.state.likers.map(liker => <Link to={`/timeline/${liker.login}`}>
+                {liker.login}
+              </Link>
 
-              <ul className="foto-info-comentarios">
-                {this.props.foto.comentarios.map(comentario => ( 
-                  <li className="comentario">
-                  <Link to={`/timeline/${comentario.login}`} className="foto-info-autor">{comentario.login} </Link>
-                  {comentario.texto}
-                </li>
-                ))}
+              , )}
+              
+                curtiram
 
-              </ul>
-            </div>            
-        );
+            </div>
+
+            <p className="foto-info-legenda">
+              <Link to={`/timeline/${this.props.foto.loginUsuario}`} className="foto-info-autor">{this.props.foto.loginUsuario} </Link>
+              {this.props.foto.comentario}
+            </p>
+
+            <ul className="foto-info-comentarios">
+              {this.state.comentarios.map(comentario => ( 
+                <li className="comentario" key={comentario.id}>
+                <Link to={`/timeline/${comentario.login}`} className="foto-info-autor">{comentario.login} </Link>
+                {comentario.texto}
+              </li>
+              ))}
+
+            </ul>
+          </div>            
+      );
     }
 }
 
