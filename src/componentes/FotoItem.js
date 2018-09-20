@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import {Link} from 'react-router';
-import PubSub from 'pubsub-js'
 
 class FotoAtualizacoes extends Component {
 
