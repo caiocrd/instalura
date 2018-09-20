@@ -14,7 +14,29 @@ export default class Timeline extends Component {
     componentWillMount(){
         Pubsub.subscribe('timeline', (topico, fotos) => {
             this.setState({fotos});
-        })
+        });
+
+        Pubsub.subscribe('atualiza-liker', (topico, infoLiker) => {
+            const fotoLikeada = this.state.fotos.find(foto => foto.id === infoLiker.fotoId);
+            fotoLikeada.likeada = !fotoLikeada.likeada;
+            const possivelLiker = fotoLikeada.likers.find(liker => liker.login === infoLiker.liker.login);
+            if(possivelLiker === undefined){
+                fotoLikeada.likers.push(infoLiker.liker);
+            }else{
+                let novosLikers = fotoLikeada.likers.filter(liker => liker.login !== infoLiker.liker.login);
+                fotoLikeada.likers = novosLikers;
+            }
+            this.setState({fotos:this.state.fotos});
+            
+        });
+
+        Pubsub.subscribe('atualiza-comentario', (topico, infoComentario) => {
+            const fotoLikeada = this.state.fotos.find(foto => foto.id === infoComentario.fotoId);
+            
+            fotoLikeada.comentarios.push(infoComentario.comentario);
+            this.setState({fotos: this.state.fotos});
+
+        });
 
     }
 
@@ -43,6 +65,38 @@ export default class Timeline extends Component {
         this.carregaFotos();
     }
 
+    like(fotoId){
+        fetch(`https://instalura-api.herokuapp.com/api/fotos/${fotoId}/like?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`,{method:'POST'})
+        .then(response => {
+            if(response.ok){
+                return response.json();
+            }
+        })
+        .then(liker => {
+            Pubsub.publish('atualiza-liker', {fotoId, liker});
+        });
+    }
+
+    comentar(fotoId, comentario){
+
+        const requestInfo = {
+          method:'POST',
+          body:JSON.stringify({texto:comentario}),
+          headers:new Headers({
+              'Content-type' : 'application/json' 
+          })
+        };
+        fetch(`https://instalura-api.herokuapp.com/api/fotos/${fotoId}/comment?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`,requestInfo)
+        .then(response => {
+          if(response.ok){
+            return response.json();
+          }
+        })
+        .then(comentario => {
+          Pubsub.publish('atualiza-comentario', {fotoId:fotoId, comentario});
+        });
+    }
+
     render(){
         return (
         <div className="fotos container">
@@ -52,7 +106,7 @@ export default class Timeline extends Component {
                 transitionLeaveTimeout={1000}>
 
                 {
-                    this.state.fotos.map(foto => <FotoItem key={foto.id} foto={foto}/>)
+                    this.state.fotos.map(foto => <FotoItem key={foto.id} foto={foto} like={this.like} comentar={this.comentar}/>)
                 }  
                             
             </ReactCSSTransitionGroup>
