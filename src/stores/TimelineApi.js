@@ -1,5 +1,5 @@
 import Pubsub from 'pubsub-js';
-import {listagem, like, comentar, pesquisar} from '../actions/actionCreator'
+import {listagem, like, comentar, pesquisar, notificar} from '../actions/actionCreator'
 
 export default class TimelineApi{
 
@@ -64,6 +64,9 @@ export default class TimelineApi{
             fetch(`https://instalura-api.herokuapp.com/api/public/fotos/${login}`)
             .then(response => response.json())
             .then(fotos => {
+                if(fotos.length === 0){
+                    dispatch(notificar("Nenhuma foto encontrada"));
+                }
                 dispatch(listagem(fotos));
                 return fotos;
             })

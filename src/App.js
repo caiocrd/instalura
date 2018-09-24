@@ -3,12 +3,14 @@ import Header from './componentes/Header';
 import Timeline from './componentes/Timeline';
 import './css/reset.css';
 import './css/timeline.css';
-import {createStore, applyMiddleware} from 'redux';
+import {createStore, applyMiddleware, combineReducers} from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import TimelineApi from './stores/TimelineApi';
 import { timeline } from './reducers/timeline';
+import { notifica } from './reducers/header';
 
-const store = createStore(timeline, applyMiddleware(thunkMiddleware));
+const reducers = combineReducers({timeline, notifica})
+const store = createStore(reducers, applyMiddleware(thunkMiddleware));
 
 class App extends Component {
 

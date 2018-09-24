@@ -9,6 +9,9 @@ export function like(fotoId, liker){
 export function comentar(fotoId, comentario){
     return {type: 'COMENTAR', fotoId, comentario}
 }
-export function pesquisar(login){
-    return {type: 'PESQUISAR', login}
+
+export function notificar(mensagem){
+    return {type: 'NOTIFICAR', mensagem}
 }
+
+

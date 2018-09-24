@@ -5,6 +5,18 @@ import TimelineApi from '../stores/TimelineApi';
 
 export default class Header extends Component {
 
+  constructor(){
+    super();
+    this.state = {msg:''}
+  }
+
+  componentWillMount(){
+    this.props.store.subscribe(() => {
+        this.setState({msg:this.props.store.getState().notifica});
+    })
+
+  } 
+
     pesquisa(event){
       event.preventDefault();
       this.props.store.dispatch(TimelineApi.pesquisar(this.loginPesquisado.value));
@@ -21,7 +33,9 @@ export default class Header extends Component {
             <input type="text" name="search" placeholder="Pesquisa" className="header-busca-campo" ref={input => this.loginPesquisado = input}/>
             <input type="submit" value="Buscar" className="header-busca-submit"/>
           </form>
-
+          <div>
+            {this.state.msg}
+          </div>
 
           <nav>
             <ul className="header-nav">
