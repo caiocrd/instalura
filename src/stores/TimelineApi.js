@@ -1,4 +1,5 @@
 import Pubsub from 'pubsub-js';
+import {listagem, like, comentar} from '../actions/actionCreator'
 
 export default class TimelineApi{
 
@@ -11,7 +12,7 @@ export default class TimelineApi{
             fetch(urlPerfil)
             .then(response => response.json())
             .then(fotos => {
-                dispatch({type: 'LISTA', fotos});
+                dispatch(listagem(fotos));
                 return fotos;
             })
         });
@@ -26,7 +27,8 @@ export default class TimelineApi{
                 }
             })
             .then(liker => {
-                dispatch({type:'LIKE', fotoId, liker})
+                dispatch(like(fotoId, liker));
+                return liker;
                 
             });
         });
@@ -49,17 +51,11 @@ export default class TimelineApi{
                 }
             })
             .then(comentario => {
-                dispatch({type: 'COMENTAR', fotoId, comentario});
-                
+                dispatch(comentar(fotoId, comentario));
+                return comentario;
             });
         });
         
-    }
-
-    subscribe(callback){
-        Pubsub.subscribe('timeline', (topico, fotos) => {
-            callback(fotos);
-        });
     }
 
 }
