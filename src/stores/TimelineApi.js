@@ -1,5 +1,5 @@
-import Pubsub from 'pubsub-js';
-import {listagem, like, comentar, pesquisar, notificar} from '../actions/actionCreator'
+
+import {listagem, like, comentar, notificar} from '../actions/actionCreator'
 
 export default class TimelineApi{
 
