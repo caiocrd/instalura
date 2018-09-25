@@ -14,7 +14,6 @@ class Timeline extends Component {
 
     carregaFotos(){
         let urlPerfil;
-        console.log(this.props.login)
         if(this.login === undefined) {
             urlPerfil = `https://instalura-api.herokuapp.com/api/fotos?X-AUTH-TOKEN=${localStorage.getItem('auth-token')}`;
         } else {

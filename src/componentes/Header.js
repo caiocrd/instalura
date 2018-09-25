@@ -1,54 +1,64 @@
 import React, { Component } from 'react';
 import TimelineApi from '../stores/TimelineApi';
+import {connect} from 'react-redux'
 
 
 
-export default class Header extends Component {
+class Header extends Component {
 
-  constructor(){
-    super();
-    this.state = {msg:''}
+  pesquisa(event){
+    event.preventDefault();
+    this.props.pesquisa(this.loginPesquisado.value);
+    
   }
 
-  componentWillMount(){
-    this.props.store.subscribe(() => {
-        this.setState({msg:this.props.store.getState().notifica});
-    })
+  render(){
+      return (
+      <header className="header container">
+        <h1 className="header-logo">
+          Instalura
+        </h1>
 
-  } 
+        <form className="header-busca" onSubmit={this.pesquisa.bind(this)}>
+          <input type="text" name="search" placeholder="Pesquisa" className="header-busca-campo" ref={input => this.loginPesquisado = input}/>
+          <input type="submit" value="Buscar" className="header-busca-submit"/>
+        </form>
+        <div>
+          {this.props.msg}
+        </div>
 
-    pesquisa(event){
-      event.preventDefault();
-      this.props.store.dispatch(TimelineApi.pesquisar(this.loginPesquisado.value));
-    }
-
-    render(){
-        return (
-        <header className="header container">
-          <h1 className="header-logo">
-            Instalura
-          </h1>
-
-          <form className="header-busca" onSubmit={this.pesquisa.bind(this)}>
-            <input type="text" name="search" placeholder="Pesquisa" className="header-busca-campo" ref={input => this.loginPesquisado = input}/>
-            <input type="submit" value="Buscar" className="header-busca-submit"/>
-          </form>
-          <div>
-            {this.state.msg}
-          </div>
-
-          <nav>
-            <ul className="header-nav">
-              <li className="header-nav-item">
-                <a >
-                  ♡
-                  {/*                 ♥ */}
-                  {/* Quem deu like nas minhas fotos */}
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </header>            
-        );
-    }
+        <nav>
+          <ul className="header-nav">
+            <li className="header-nav-item">
+              <a >
+                ♡
+                {/*                 ♥ */}
+                {/* Quem deu like nas minhas fotos */}
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </header>            
+      );
+  }
 }
+
+const mapStateToPros = state => {
+  return(
+    {msg: state.notifica}
+  );
+}
+const mapDispatchToProps = dispatch => {
+  return(
+    {
+      pesquisa: loginPesquisado => {
+        dispatch(TimelineApi.pesquisar(loginPesquisado))
+      }
+
+    }
+  )
+}
+
+const HeaderContainer = connect(mapStateToPros, mapDispatchToProps)(Header);
+
+export default HeaderContainer;
